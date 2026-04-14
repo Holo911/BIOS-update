@@ -105,10 +105,31 @@ int main() {
         while (getchar() != '\n'); 
     }
 
-    // 3. Execute the command securely
+    // 3. Confirm before flashing
+    printf("\n>> About to flash BIOS with: %s\n", selected_rom);
+    printf(">> Are you sure? This can brick your motherboard. [y/N]: ");
+    
+    char confirm = 'n';
+    confirm = getchar();
+    while (getchar() != '\n'); // clear buffer
+    
+    if (confirm != 'y' && confirm != 'Y') {
+        printf("\nOperation canceled by user.\n");
+        return 0;
+    }
+
+    // 4. Check that the flashing tool exists
+    if (access("./afulnx_64", X_OK) != 0) {
+        printf("\nERROR: ./afulnx_64 not found or not executable in this folder!\n");
+        printf("Please place the AMI flashing utility here and make sure it is executable.\n");
+        return 1;
+    }
+
+    // 5. Execute the command securely
+    printf("\nFlashing BIOS with: %s\n", selected_rom);
     printf("Please do not turn off your computer!\n\n");
 
-    // SECURITY FIX: Using fork() and execvp() instead of system()
+    // SECURITY: Using fork() and execvp() instead of system()
     
     pid_t pid = fork();
 
@@ -122,8 +143,8 @@ int main() {
         
         execvp(args[0], args);
         
-        printf("\nError: Could not execute the flashing tool. Is ./afulnx_64 in this folder?\n");
-        exit(1);
+        printf("\nError: Could not execute the flashing tool.\n");
+        _exit(1);
     } 
     else {
         // --- PARENT PROCESS ---
